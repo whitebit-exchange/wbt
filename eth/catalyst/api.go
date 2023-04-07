@@ -639,7 +639,9 @@ func (api *ConsensusAPI) heartbeat() {
 						}
 						// Estimate an ETA based on the block times and the difficulty growth
 						growth := diff / float64(head.Time()-block.Time()+1) // +1 to avoid div by zero
-						if growth > 0 {
+						// `growth` value can be less than 1 so division by zero error can happen
+						// This code may not be executed after the merge, but it can crash application before the merge happens
+						if int64(growth) > 0 {
 							if left := new(big.Int).Sub(ttd, htd); left.IsUint64() {
 								eta = time.Duration(float64(left.Uint64())/growth) * time.Second
 							} else {
