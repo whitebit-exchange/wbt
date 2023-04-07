@@ -160,6 +160,8 @@ func CommitGenesisState(db ethdb.Database, hash common.Hash) error {
 			genesis = DefaultGoerliGenesisBlock()
 		case params.SepoliaGenesisHash:
 			genesis = DefaultSepoliaGenesisBlock()
+		case params.WbtTestnetGenesisHash:
+			genesis = DefaultWbtTestnetGenesisBlock()
 		}
 		if genesis != nil {
 			alloc = genesis.Alloc
@@ -357,6 +359,8 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return params.GoerliChainConfig
 	case ghash == params.KilnGenesisHash:
 		return DefaultKilnGenesisBlock().Config
+	case ghash == params.WbtTestnetGenesisHash:
+		return params.WbtTestnetChainConfig
 	default:
 		return params.AllEthashProtocolChanges
 	}
@@ -511,6 +515,22 @@ func DefaultKilnGenesisBlock() *Genesis {
 		panic(err)
 	}
 	return g
+}
+
+// DefaultWbtTestnetGenesisBlock returns the WhiteBIT test network genesis block.
+func DefaultWbtTestnetGenesisBlock() *Genesis {
+	return &Genesis{
+		Config:     params.WbtTestnetChainConfig,
+		Timestamp:  1680259313,
+		ExtraData:  hexutil.MustDecode("0x00000000000000000000000000000000000000000000000000000000000000003d00c266f957fa411a3855c322f11cbf21bebb2f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+		GasLimit:   4700000,
+		Difficulty: big.NewInt(1),
+		Alloc: GenesisAlloc{
+			common.HexToAddress("0x55064C96A455370a21c7eC3Ac3112B562be9f70F"): GenesisAccount{
+				Balance: new(big.Int).Mul(big.NewInt(400000000000), big.NewInt(params.Ether)),
+			},
+		},
+	}
 }
 
 // DeveloperGenesisBlock returns the 'geth --dev' genesis block.
