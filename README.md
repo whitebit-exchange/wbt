@@ -72,7 +72,7 @@ and/or hosts. By default, `geth` binds to the local interface and RPC endpoints 
 accessible from the outside.
 
 #### Monitor logs 
-To ensure that your node start syncing look at the logs for such text:
+You can check if your node has started syncing by looking for the following log messages:
 ```text
 INFO [04-12|09:59:58.554] Imported new block receipts              count=21  elapsed=10.245ms  number=21  hash=f4b1f9..0b33a4 age=1w4d20h size=7.25KiB
 INFO [04-12|09:59:58.645] Imported new block headers               count=192 elapsed=105.222ms number=768 hash=0fc521..d533e8 age=1w4d19h
