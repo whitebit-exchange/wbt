@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
@@ -352,9 +353,9 @@ func (beacon *Beacon) FinalizeAndAssemble(chain consensus.ChainHeaderReader, hea
 //
 // Note, the method returns immediately and will send the result async. More
 // than one result may also be returned depending on the consensus algorithm.
-func (beacon *Beacon) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
+func (beacon *Beacon) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}, sealMu *sync.Mutex, lastSealedHeightCh chan<- uint64) error {
 	if !beacon.IsPoSHeader(block.Header()) {
-		return beacon.ethone.Seal(chain, block, results, stop)
+		return beacon.ethone.Seal(chain, block, results, stop, sealMu, lastSealedHeightCh)
 	}
 	// The seal verification is done by the external consensus engine,
 	// return directly without pushing any block back. In another word
