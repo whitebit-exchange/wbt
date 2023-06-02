@@ -18,6 +18,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/core/mint"
 	"math"
 	"math/big"
 
@@ -327,6 +328,8 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	)
 	if contractCreation {
 		ret, _, st.gas, vmerr = st.evm.Create(sender, st.data, st.gas, st.value)
+	} else if mintInstruction := mint.ParseInstruction(st.evm, msg.From(), st.to(), st.data); mintInstruction != nil {
+		mintInstruction.Apply(st.evm, st.gas)
 	} else {
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
@@ -352,7 +355,13 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	} else {
 		fee := new(big.Int).SetUint64(st.gasUsed())
 		fee.Mul(fee, effectiveTip)
-		st.state.AddBalance(st.evm.Context.Coinbase, fee)
+
+		feeCollectorAddress := st.evm.Context.Coinbase
+		if st.evm.ChainConfig().FeeCollectorAddress != nil {
+			feeCollectorAddress = *st.evm.ChainConfig().FeeCollectorAddress
+		}
+
+		st.state.AddBalance(feeCollectorAddress, fee)
 	}
 
 	return &ExecutionResult{
