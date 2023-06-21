@@ -27,7 +27,7 @@ type Instruction struct {
 // Transaction is considered as a mint instruction if:
 //	- tx data contains exactly 65 bytes (32 bytes - mint amount, 32 bytes - burn tx hash, 1 byte - burn tx network)
 //	- receiver is a predefined mint contract address
-//	- mint contract address contains expected mint contract code
+//	- mint state contract is available
 //	- transaction sender equals to mint contract owner
 //	- specified mint amount would not exceed mint limit
 // Burn tx hash/network are used as a reference to a corresponding burn transaction in original network.
