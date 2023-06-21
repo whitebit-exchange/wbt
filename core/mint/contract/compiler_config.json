@@ -1,0 +1,14 @@
+{
+  "language": "Solidity",
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": ["*"]
+      }
+    }
+  }
+}
