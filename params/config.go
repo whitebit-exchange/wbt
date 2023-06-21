@@ -290,6 +290,11 @@ var (
 			Period: 2,
 			Epoch:  30000,
 		},
+		MintContract: &MintContractConfig{
+			ActivationBlock: big.NewInt(3746350),
+			OwnerAddress:    common.HexToAddress("0xF8bd3D4C4482bDFF5e6be5f5029ab08Ad0401642"),
+			MintLimit:       (*math.HexOrDecimal256)(new(big.Int).Mul(big.NewInt(400000000), big.NewInt(Ether))),
+		},
 	}
 
 	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
