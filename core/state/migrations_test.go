@@ -52,7 +52,7 @@ func TestApplyMintContractMigration(t *testing.T) {
 
 	expectedOwner := common.HexToHash("0x0000000000000000000000001000000000000000000000000000000000000000")
 	expectedMintLimit := common.HexToHash("0x0000000000000000000000000000000000000000000000000de0b6b3a7640000")
-	expectedBytecodeHash := common.HexToHash("0x094c2e08801f704f590fc847deec6076c880cdc6062f87c32614a4ff213fdf9c")
+	expectedBytecodeHash := common.HexToHash("0xfd239f4b73e7ca9e286f4e3190bfa283fc96af4bb89ad03283c760d5431af53b")
 
 	contractStateObject := state.getStateObject(common.BytesToAddress([]byte{0x10, 0x00}))
 	assert.Equal(t, new(big.Int), contractStateObject.Balance())
