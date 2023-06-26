@@ -592,7 +592,7 @@ func (c *Clique) Authorize(signer common.Address, signFn SignerFn) {
 
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
-func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}, sealMu *sync.Mutex, lastSealedHeightCh chan<- uint64) error {
+func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
 	header := block.Header()
 
 	// Sealing the genesis block is not supported
@@ -650,19 +650,8 @@ func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, res
 		case <-time.After(delay):
 		}
 
-		sealMu.Lock()
-		defer sealMu.Unlock()
-
-		select {
-		// if `stop` channel has been closed in worker, don't push new block to `results` channel
-		case <-stop:
-			return
-		default:
-		}
-
 		select {
 		case results <- block.WithSeal(header):
-			lastSealedHeightCh <- header.Number.Uint64()
 		default:
 			log.Warn("Sealing result is not read by miner", "sealhash", SealHash(header))
 		}

@@ -638,9 +638,6 @@ func (w *worker) taskLoop() {
 		prev   common.Hash
 	)
 
-	sealMu := &sync.Mutex{}
-	lastSealedHeightCh := make(chan uint64, 1)
-
 	// interrupt aborts the in-flight sealing task.
 	interrupt := func() {
 		if stopCh != nil {
@@ -660,23 +657,8 @@ func (w *worker) taskLoop() {
 				continue
 			}
 
-			var lastSealedHeight uint64
-
-			sealMu.Lock()
-
+			// Interrupt previous sealing operation
 			interrupt()
-			select {
-			case lastSealedHeight = <-lastSealedHeightCh:
-			default:
-			}
-
-			sealMu.Unlock()
-
-			if lastSealedHeight == task.block.NumberU64() {
-				log.Info("Reject sealing block with already sealed height", "number", task.block.NumberU64(), "sealhash", sealHash)
-				continue
-			}
-
 			stopCh, prev = make(chan struct{}), sealHash
 
 			if w.skipSealHook != nil && w.skipSealHook(task) {
@@ -686,7 +668,7 @@ func (w *worker) taskLoop() {
 			w.pendingTasks[sealHash] = task
 			w.pendingMu.Unlock()
 
-			if err := w.engine.Seal(w.chain, task.block, w.resultCh, stopCh, sealMu, lastSealedHeightCh); err != nil {
+			if err := w.engine.Seal(w.chain, task.block, w.resultCh, stopCh); err != nil {
 				log.Warn("Block sealing failed", "err", err)
 				w.pendingMu.Lock()
 				delete(w.pendingTasks, sealHash)
