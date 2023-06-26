@@ -60,7 +60,7 @@ Open a terminal or command prompt, then enter:
 docker run --rm -it \
   --name wbt -v /Users/alice/wbt:/root \
   -p 8545:8545 -p 30303:30303 \
-  whitebit/wbt:0.1.0 --wbt-testnet
+  whitebit/wbt:0.2.0 --wbt-testnet
 ```
 
 This will start `geth` in snap-sync mode with a DB memory allowance of 1GB just as the
@@ -210,7 +210,7 @@ Please make sure your contributions adhere to our coding guidelines:
  * Commit messages should be prefixed with the package(s) they modify.
    * E.g. "eth, rpc: make trace configs optional"
 
-Please see the [Developers' Guide](https://geth.ethereum.org/docs/developers/devguide)
+Please see the [Developers' Guide](https://geth.ethereum.org/docs/developers/geth-developer/dev-guide)
 for more details on configuring your environment, managing project dependencies, and
 testing procedures.
 
