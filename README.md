@@ -125,13 +125,13 @@ Minimum:
 
 CPU with 2+ cores
 8GB RAM
-20GB free storage space to sync the Testnet
+100GB free storage space to sync the Testnet
 8 MBit/sec download Internet service
 
 Recommended (Testnet):
 Fast CPU with 4+ cores
 16GB+ RAM
-High-performance SSD with at least 120GB of free space
+High-performance SSD with at least 500GB of free space
 25+ MBit/sec download Internet service
 
 ### Configuration
