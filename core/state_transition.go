@@ -369,6 +369,11 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	)
 	if contractCreation {
 		ret, _, st.gasRemaining, vmerr = st.evm.Create(sender, msg.Data, st.gasRemaining, msg.Value)
+	} else if st.evm.IsMintInstruction(st.to(), msg.Data) {
+		var data [65]byte
+		copy(data[:], msg.Data)
+
+		st.gasRemaining, vmerr = st.evm.Mint(sender.Address(), data, st.gasRemaining)
 	} else {
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(msg.From, st.state.GetNonce(sender.Address())+1)
