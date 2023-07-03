@@ -17,13 +17,16 @@
 package vm
 
 import (
-	"math/big"
-	"sync/atomic"
-
+	"errors"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/mint"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
+	"math/big"
+	"sync/atomic"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -518,6 +521,94 @@ func (evm *EVM) Create2(caller ContractRef, code []byte, gas uint64, endowment *
 	codeAndHash := &codeAndHash{code: code}
 	contractAddr = crypto.CreateAddress2(caller.Address(), salt.Bytes32(), codeAndHash.Hash().Bytes())
 	return evm.create(caller, codeAndHash, gas, endowment, contractAddr, CREATE2)
+}
+
+// IsMintInstruction checks whether a transaction can be considered a mint instruction.
+// Conditions:
+//   - transaction input data should contain exactly 65 bytes of data;
+//   - transaction should be directed to a mint state contract address;
+//   - mint contract code hash must equal to the predefined value.
+func (evm *EVM) IsMintInstruction(receiver common.Address, data []byte) bool {
+	return len(data) == 65 &&
+		receiver == mint.Contract.Address &&
+		evm.StateDB.GetCodeHash(mint.Contract.Address) == mint.Contract.BytecodeHash
+}
+
+// Mint executes mint instruction.
+//
+// Input data structure: 32 bytes - mint amount, 32 bytes - burn tx hash, 1 byte - burn tx network.
+// Burn tx hash/network are used as a reference to a corresponding burn transaction in original network.
+// These fields are only be applied to a Mint event.
+//
+// Execution preconditions:
+//   - there is enough gas for execution;
+//   - input data is valid;
+//   - transaction sender equals to mint contract owner;
+//   - specified mint amount would not exceed mint limit.
+//
+// If all conditions are met, then state will be changed as following:
+//   - mint limit will be decreased by mint amount in mint state contract;
+//   - sender balance will be increased by mint amount;
+//   - Mint event will be produced.
+//
+// Otherwise, VM error will be returned and state would not change (except sender's nonce).
+func (evm *EVM) Mint(sender common.Address, data [65]byte, gas uint64) (leftOverGas uint64, err error) {
+	if evm.Config.Tracer != nil {
+		evm.Config.Tracer.CaptureStart(evm, sender, mint.Contract.Address, false, data[:], gas, nil)
+		defer func() {
+			evm.Config.Tracer.CaptureEnd(nil, gas-leftOverGas, err)
+		}()
+	}
+
+	evm.StateDB.SetNonce(sender, evm.StateDB.GetNonce(sender)+1)
+
+	if gas < params.MintInstructionGas {
+		return 0, ErrOutOfGas
+	}
+
+	leftOverGas = gas - params.MintInstructionGas
+
+	amountBytes, burnTxHashBytes, burnTxNetwork := data[:32], data[32:64], data[64]
+	if burnTxNetwork != mint.BurnNetworkEthereum && burnTxNetwork != mint.BurnNetworkTron {
+		return leftOverGas, errors.New("invalid burn tx network in mint instruction")
+	}
+
+	contractOwnerBytes := evm.getMintState(mint.Contract.StorageLayout.Owner).Bytes()
+	contractOwner := common.BytesToAddress(contractOwnerBytes)
+	if sender != contractOwner {
+		return leftOverGas, errors.New("transaction sender is not allowed to mint")
+	}
+
+	amount := new(big.Int).SetBytes(amountBytes)
+	mintLimit := evm.getMintState(mint.Contract.StorageLayout.MintLimit).Big()
+	if amount.Cmp(mintLimit) == 1 {
+		return leftOverGas, errors.New("mint amount exceeds mint limit")
+	}
+
+	nextLimit := new(big.Int).Sub(mintLimit, amount)
+	nextLimitHash := common.BytesToHash(nextLimit.Bytes())
+
+	evm.StateDB.SetState(mint.Contract.Address, mint.Contract.StorageLayout.MintLimit, nextLimitHash)
+	evm.StateDB.AddBalance(sender, amount)
+
+	event := mint.EventAbi.Events[mint.EventName]
+	logData, packErr := event.Inputs.Pack(amount, common.BytesToHash(burnTxHashBytes), burnTxNetwork)
+	if packErr != nil {
+		log.Crit("failed to pack Mint event data", "error", packErr)
+	}
+
+	evm.StateDB.AddLog(&types.Log{
+		Address:     mint.Contract.Address,
+		Topics:      []common.Hash{event.ID},
+		Data:        logData,
+		BlockNumber: evm.Context.BlockNumber.Uint64(),
+	})
+
+	return leftOverGas, nil
+}
+
+func (evm *EVM) getMintState(slotId common.Hash) common.Hash {
+	return evm.StateDB.GetState(mint.Contract.Address, slotId)
 }
 
 // ChainConfig returns the environment's chain configuration

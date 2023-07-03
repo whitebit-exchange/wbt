@@ -1,0 +1,19 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "MintState.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n\npragma solidity 0.8.19;\n\ncontract MintState {\n    address public owner;\n    uint256 public mintLimit;\n\n    event Mint(uint256 amount, bytes32 burnTxHash, uint8 burnTxNetwork);\n\n    modifier onlyOwner {\n        require(msg.sender == owner, \"Available only for owner\");\n        _;\n    }\n\n    function transferOwnership(address newOwner) external onlyOwner {\n        require(newOwner != address(0), \"Zero address is not a valid owner\");\n        owner = newOwner;\n    }\n\n    function changeMintLimit(uint256 newLimit) external onlyOwner {\n        require(newLimit < mintLimit, \"Mint limit cannot be increased\");\n        mintLimit = newLimit;\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": ["*"]
+      }
+    }
+  }
+}

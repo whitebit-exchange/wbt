@@ -191,11 +191,12 @@ type intervalAdjust struct {
 // worker is the main object which takes care of submitting new work to consensus engine
 // and gathering the sealing result.
 type worker struct {
-	config      *Config
-	chainConfig *params.ChainConfig
-	engine      consensus.Engine
-	eth         Backend
-	chain       *core.BlockChain
+	config          *Config
+	chainConfig     *params.ChainConfig
+	engine          consensus.Engine
+	eth             Backend
+	chain           *core.BlockChain
+	stateMigrations state.Migrations
 
 	// Feeds
 	pendingLogsFeed event.Feed
@@ -278,6 +279,7 @@ func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus
 		eth:                eth,
 		chain:              eth.BlockChain(),
 		mux:                mux,
+		stateMigrations:    state.InitMigrations(chainConfig),
 		isLocalBlock:       isLocalBlock,
 		localUncles:        make(map[common.Hash]*types.Block),
 		remoteUncles:       make(map[common.Hash]*types.Block),
@@ -1028,6 +1030,9 @@ func (w *worker) prepareWork(genParams *generateParams) (*environment, error) {
 		log.Error("Failed to create sealing context", "err", err)
 		return nil, err
 	}
+
+	w.stateMigrations.Execute(header.Number, env.state, "miner worker")
+
 	// Accumulate the uncles for the sealing work only if it's allowed.
 	if !genParams.noUncle {
 		commitUncles := func(blocks map[common.Hash]*types.Block) {

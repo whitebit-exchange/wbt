@@ -19,7 +19,13 @@ Audit reports are published in the `docs` folder: https://github.com/ethereum/go
 
 **Please do not file a public ticket** mentioning the vulnerability.
 
-To find out how to disclose a vulnerability in Ethereum visit [https://bounty.ethereum.org](https://bounty.ethereum.org) or email bounty@ethereum.org. Please read the [disclosure page](https://github.com/ethereum/go-ethereum/security/advisories?state=published) for more information about publicly disclosed security vulnerabilities.
+If you have found a vulnerability in WB Network and would like to report it to us, please visit [https://explorer.whitebit.network/testnet/bug-bounty](https://explorer.whitebit.network/testnet/bug-bounty). You can fill out the BugBounty report and get rewarded if your report meets our requirements.
+We ask that all researchers:
+- Make every effort to avoid privacy violations, degradation of user experience, disruption to production systems, and destruction of data during security testing
+- Use the identified communication channels to report vulnerability information to us
+- Report vulnerabilities as soon as you discover it, but keep it confidential between yourself and WB Network until we’ve resolved the issue
+- Please follow the rules of the BugBounty program
+- Provide us with at least 7 working days to investigate the issue and revert back to you
 
 Use the built-in `geth version-check` feature to check whether the software is affected by any known vulnerability. This command will fetch the latest [`vulnerabilities.json`](https://geth.ethereum.org/docs/vulnerabilities/vulnerabilities.json) file which contains known security vulnerabilities concerning `geth`, and cross-check the data against its own version number.
 

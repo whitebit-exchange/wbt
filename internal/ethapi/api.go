@@ -1613,6 +1613,75 @@ func (s *TransactionAPI) GetRawTransactionByHash(ctx context.Context, hash commo
 	return tx.MarshalBinary()
 }
 
+func (s *TransactionAPI) GetBlockReceipts(ctx context.Context, blockHash common.Hash) ([]map[string]interface{}, error) {
+	block, err := s.b.BlockByHash(ctx, blockHash)
+	if err != nil {
+		return nil, err
+	}
+
+	receipts, err := s.b.GetReceipts(ctx, blockHash)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(receipts) != len(block.Transactions()) {
+		return nil, errors.New("receipts and transactions count mismatch")
+	}
+
+	output := make([]map[string]interface{}, len(receipts))
+
+	for index, receipt := range receipts {
+		tx := block.Transactions()[index]
+
+		// Derive the sender.
+		signer := types.MakeSigner(s.b.ChainConfig(), block.Number())
+		from, _ := types.Sender(signer, tx)
+
+		fields := map[string]interface{}{
+			"blockHash":         blockHash,
+			"blockNumber":       hexutil.Uint64(block.NumberU64()),
+			"transactionHash":   tx.Hash(),
+			"transactionIndex":  hexutil.Uint64(index),
+			"from":              from,
+			"to":                tx.To(),
+			"gasUsed":           hexutil.Uint64(receipt.GasUsed),
+			"cumulativeGasUsed": hexutil.Uint64(receipt.CumulativeGasUsed),
+			"contractAddress":   nil,
+			"logs":              receipt.Logs,
+			"logsBloom":         receipt.Bloom,
+			"type":              hexutil.Uint(tx.Type()),
+		}
+		// Assign the effective gas price paid
+		if !s.b.ChainConfig().IsLondon(block.Number()) {
+			fields["effectiveGasPrice"] = hexutil.Uint64(tx.GasPrice().Uint64())
+		} else {
+			header, err := s.b.HeaderByHash(ctx, blockHash)
+			if err != nil {
+				return nil, err
+			}
+			gasPrice := new(big.Int).Add(header.BaseFee, tx.EffectiveGasTipValue(header.BaseFee))
+			fields["effectiveGasPrice"] = hexutil.Uint64(gasPrice.Uint64())
+		}
+		// Assign receipt status or post state.
+		if len(receipt.PostState) > 0 {
+			fields["root"] = hexutil.Bytes(receipt.PostState)
+		} else {
+			fields["status"] = hexutil.Uint(receipt.Status)
+		}
+		if receipt.Logs == nil {
+			fields["logs"] = []*types.Log{}
+		}
+		// If the ContractAddress is 20 0x0 bytes, assume it is not a contract creation
+		if receipt.ContractAddress != (common.Address{}) {
+			fields["contractAddress"] = receipt.ContractAddress
+		}
+
+		output[index] = fields
+	}
+
+	return output, nil
+}
+
 // GetTransactionReceipt returns the transaction receipt for the given transaction hash.
 func (s *TransactionAPI) GetTransactionReceipt(ctx context.Context, hash common.Hash) (map[string]interface{}, error) {
 	tx, blockHash, blockNumber, index, err := s.b.GetTransaction(ctx, hash)
