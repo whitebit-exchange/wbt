@@ -11,6 +11,11 @@ import (
 	"testing"
 )
 
+func TestInitEmptyMigrationsList(t *testing.T) {
+	migrationsList := InitMigrations(&params.ChainConfig{})
+	assert.Len(t, migrationsList, 0)
+}
+
 func TestInitMigrationsAndApplyOnRandomBlock(t *testing.T) {
 	chainConfig := &params.ChainConfig{
 		MintContract: &params.MintContractConfig{
@@ -24,7 +29,7 @@ func TestInitMigrationsAndApplyOnRandomBlock(t *testing.T) {
 	assert.Len(t, migrationsList, 1)
 	assert.Len(t, migrationsList[100000], 1)
 
-	migrationsList.append(100000, migrationsList[100000][0])
+	migrationsList.register(migrationsList[100000][0])
 	assert.Len(t, migrationsList, 1)
 	assert.Len(t, migrationsList[100000], 2)
 

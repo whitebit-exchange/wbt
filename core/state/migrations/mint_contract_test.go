@@ -4,6 +4,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 )
 
@@ -18,7 +19,8 @@ func TestInvalidConfig(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.expectedMessage, func(t *testing.T) {
-			_, err := NewMintContractMigration(testCase.config)
+			testCase.config.ActivationBlock = big.NewInt(1)
+			_, err := NewMintContractMigration(&params.ChainConfig{MintContract: testCase.config})
 			assert.ErrorContains(t, err, testCase.expectedMessage)
 		})
 	}

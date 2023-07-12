@@ -12,22 +12,35 @@ import (
 // MintContractMigration initializes mint contract on a predefined address
 // with a state retrieved from chain config.
 type MintContractMigration struct {
+	block        *big.Int
 	ownerAddress common.Address
 	mintLimit    *big.Int
 }
 
 // NewMintContractMigration validates chain config
 // and either creates a new migration instance, or returns a validation error.
-func NewMintContractMigration(config *params.MintContractConfig) (*MintContractMigration, error) {
-	if config.OwnerAddress == (common.Address{}) {
+func NewMintContractMigration(config *params.ChainConfig) (*MintContractMigration, error) {
+	if config.MintContract == nil || config.MintContract.ActivationBlock == nil {
+		return nil, nil
+	}
+
+	if config.MintContract.OwnerAddress == (common.Address{}) {
 		return nil, errors.New("owner address is not specified or equals to zero address")
 	}
 
-	if config.MintLimit == nil {
+	if config.MintContract.MintLimit == nil {
 		return nil, errors.New("mint limit is not specified")
 	}
 
-	return &MintContractMigration{config.OwnerAddress, (*big.Int)(config.MintLimit)}, nil
+	return &MintContractMigration{
+		block:        config.MintContract.ActivationBlock,
+		ownerAddress: config.MintContract.OwnerAddress,
+		mintLimit:    (*big.Int)(config.MintContract.MintLimit),
+	}, nil
+}
+
+func (m *MintContractMigration) Block() *big.Int {
+	return m.block
 }
 
 func (m *MintContractMigration) Name() string {
