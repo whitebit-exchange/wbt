@@ -10,11 +10,25 @@ import (
 
 // Migration represents a single state migration.
 type Migration interface {
+	Init(config *params.ChainConfig) (activationBlock uint64, err error)
+
 	// Name returns migration name
 	Name() string
 
 	// Execute applies state changes to the specified state
 	Execute(stateDB vm.StateDB)
+}
+
+var RegisteredMigrations []Migration
+
+func init() {
+	var _ Migration = (*migrations.MintContractMigration)(nil)
+
+	// here is where we register migrations, but the initialization logic is different for every migration
+	// so it's implementation details of each migration
+	RegisteredMigrations = []Migration{
+		migrations.MintContractMigrationSingleton,
+	}
 }
 
 // Migrations represents migrations lists mapped by block heights where these migrations should be executed.
@@ -27,13 +41,12 @@ type Migrations map[uint64][]Migration
 func InitMigrations(config *params.ChainConfig) Migrations {
 	output := make(Migrations)
 
-	if config.MintContract != nil && config.MintContract.ActivationBlock != nil {
-		migration, err := migrations.NewMintContractMigration(config.MintContract)
-		if err != nil {
-			log.Crit("invalid mint contract config", "err", err)
+	for _, migration := range RegisteredMigrations {
+		if activationBlock, err := migration.Init(config); err != nil {
+			log.Crit("Failed to initialize state migration", "name", migration.Name(), "err", err)
+		} else {
+			output.append(activationBlock, migration)
 		}
-
-		output.append(config.MintContract.ActivationBlock.Uint64(), migration)
 	}
 
 	return output

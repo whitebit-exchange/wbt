@@ -16,18 +16,26 @@ type MintContractMigration struct {
 	mintLimit    *big.Int
 }
 
-// NewMintContractMigration validates chain config
-// and either creates a new migration instance, or returns a validation error.
-func NewMintContractMigration(config *params.MintContractConfig) (*MintContractMigration, error) {
-	if config.OwnerAddress == (common.Address{}) {
-		return nil, errors.New("owner address is not specified or equals to zero address")
+var MintContractMigrationSingleton = &MintContractMigration{}
+
+// Init validates chain config
+// and either sets up singleton, or returns a validation error.
+func (m *MintContractMigration) Init(config *params.ChainConfig) (uint64, error) {
+	if config.MintContract != nil && config.MintContract.ActivationBlock != nil {
+		if config.MintContract.OwnerAddress == (common.Address{}) {
+			return 0, errors.New("owner address is not specified or equals to zero address")
+		}
+
+		if config.MintContract.MintLimit == nil {
+			return 0, errors.New("mint limit is not specified")
+		}
+
+		m.ownerAddress = config.MintContract.OwnerAddress
+		m.mintLimit = (*big.Int)(config.MintContract.MintLimit)
+		return config.MintContract.ActivationBlock.Uint64(), nil
 	}
 
-	if config.MintLimit == nil {
-		return nil, errors.New("mint limit is not specified")
-	}
-
-	return &MintContractMigration{config.OwnerAddress, (*big.Int)(config.MintLimit)}, nil
+	return 0, errors.New("mint contract is not specified")
 }
 
 func (m *MintContractMigration) Name() string {
