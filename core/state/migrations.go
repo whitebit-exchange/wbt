@@ -30,16 +30,23 @@ type Migrations map[uint64][]Migration
 func InitMigrations(config *params.ChainConfig) Migrations {
 	output := make(Migrations)
 
-	if migration, err := migrations.NewMintContractMigration(config); migration != nil {
+	// All available migrations should be defined there
+	availableMigrations := []Migration{
+		migrations.NewMintContractMigration(config),
+	}
+
+	for _, migration := range availableMigrations {
 		output.register(migration)
-	} else if err != nil {
-		log.Crit("invalid mint contract config", "err", err)
 	}
 
 	return output
 }
 
 func (m Migrations) register(migration Migration) {
+	if migration.Block() == nil {
+		return
+	}
+
 	block := migration.Block().Uint64()
 
 	if existingMigrations, exists := m[block]; !exists {
