@@ -30,7 +30,7 @@ type Migrations map[uint64][]Migration
 func InitMigrations(config *params.ChainConfig) Migrations {
 	output := make(Migrations)
 
-	// All available migrations should be defined there
+	// All available migrations should be defined here
 	availableMigrations := []Migration{
 		migrations.NewMintContractMigration(config),
 	}
