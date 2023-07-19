@@ -60,7 +60,7 @@ Open a terminal or command prompt, then enter:
 docker run --rm -it \
   --name wbt -v /Users/alice/wbt:/root \
   -p 8545:8545 -p 30303:30303 \
-  whitebit/wbt:0.2.0 --wbt-testnet
+  whitebit/wbt:0.3.0 --wbt-testnet
 ```
 
 This will start `geth` in snap-sync mode with a DB memory allowance of 1GB just as the
