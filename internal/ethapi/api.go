@@ -1613,9 +1613,10 @@ func (s *TransactionAPI) GetRawTransactionByHash(ctx context.Context, hash commo
 	return tx.MarshalBinary()
 }
 
+// GetBlockReceipts returns an array of receipts in the block with the given hash, returns null if block not found.
 func (s *TransactionAPI) GetBlockReceipts(ctx context.Context, blockHash common.Hash) ([]map[string]interface{}, error) {
 	block, err := s.b.BlockByHash(ctx, blockHash)
-	if err != nil {
+	if block == nil || err != nil {
 		return nil, err
 	}
 
@@ -1650,18 +1651,9 @@ func (s *TransactionAPI) GetBlockReceipts(ctx context.Context, blockHash common.
 			"logs":              receipt.Logs,
 			"logsBloom":         receipt.Bloom,
 			"type":              hexutil.Uint(tx.Type()),
+			"effectiveGasPrice": (*hexutil.Big)(receipt.EffectiveGasPrice),
 		}
-		// Assign the effective gas price paid
-		if !s.b.ChainConfig().IsLondon(block.Number()) {
-			fields["effectiveGasPrice"] = hexutil.Uint64(tx.GasPrice().Uint64())
-		} else {
-			header, err := s.b.HeaderByHash(ctx, blockHash)
-			if err != nil {
-				return nil, err
-			}
-			gasPrice := new(big.Int).Add(header.BaseFee, tx.EffectiveGasTipValue(header.BaseFee))
-			fields["effectiveGasPrice"] = hexutil.Uint64(gasPrice.Uint64())
-		}
+
 		// Assign receipt status or post state.
 		if len(receipt.PostState) > 0 {
 			fields["root"] = hexutil.Bytes(receipt.PostState)
