@@ -477,6 +477,8 @@ type ChainConfig struct {
 	// Various consensus engines
 	Ethash *EthashConfig `json:"ethash,omitempty"`
 	Clique *CliqueConfig `json:"clique,omitempty"`
+
+	FeeCollectorAddress *common.Address `json:"feeCollectorAddress,omitempty"`
 }
 
 type MintContractConfig struct {
