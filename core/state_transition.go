@@ -399,7 +399,13 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	} else {
 		fee := new(big.Int).SetUint64(st.gasUsed())
 		fee.Mul(fee, effectiveTip)
-		st.state.AddBalance(st.evm.Context.Coinbase, fee)
+
+		feeCollectorAddress := st.evm.Context.Coinbase
+		if st.evm.ChainConfig().FeeCollectorAddress != nil {
+			feeCollectorAddress = *st.evm.ChainConfig().FeeCollectorAddress
+		}
+
+		st.state.AddBalance(feeCollectorAddress, fee)
 	}
 
 	return &ExecutionResult{
