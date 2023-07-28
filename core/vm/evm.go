@@ -536,6 +536,21 @@ func (evm *EVM) IsMintInstruction(receiver common.Address, data []byte) bool {
 
 // Mint executes mint instruction.
 //
+// WhiteBIT takes responsibility for the consistency of the entire WB Network and all its subsystems.
+// As a result, we have eliminated all potential vulnerabilities and implemented a manual flow for verifying burning and minting transactions.
+// We have deliberately avoided creating an intermediate oracle for transmitting and verifying these data to the WB Network.
+// We believe that the introduction of such an oracle could create vulnerabilities in the process of minting new coins.
+// This, consequently, could potentially compromise the integrity of the WBT tokenomics.
+// Moreover, creating such an oracle would complicate the infrastructure of the entire network
+// and make it more difficult for users to set up the nodes.
+//
+// The Mint method is manually invoked at the WB Network protocol level.
+// The method takes the hash of a transaction in the Ethereum or Tron network as a mandatory input parameter,
+// within which the burning of WBT took place.
+// This implementation allows for the issuance of new coins only if a confirmed artifact,
+// the hash of the WBT burning transaction, is present.
+// The execution and verification of the burn transaction during the minting process are also performed manually.
+//
 // Input data structure: 32 bytes - mint amount, 32 bytes - burn tx hash, 1 byte - burn tx network.
 // Burn tx hash/network are used as a reference to a corresponding burn transaction in original network.
 // These fields are only be applied to a Mint event.
