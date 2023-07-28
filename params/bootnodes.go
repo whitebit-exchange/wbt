@@ -63,6 +63,8 @@ var GoerliBootnodes = []string{
 	"enode://d2b720352e8216c9efc470091aa91ddafc53e222b32780f505c817ceef69e01d5b0b0797b69db254c586f493872352f5a022b4d8479a00fc92ec55f9ad46a27e@88.99.70.182:30303",
 }
 
+var WbtMainnetBootnodes []string // Todo: specify
+
 var WbtTestnetBootnodes = []string{
 	"enode://5da705c3da6701cade478c078c6c655a1996127d6141c9ced4cd7dd0f01a999333db0ca7efe322d0ea5cec94d8dd8fd2064035cc1e7b59d843ca156fa2280626@bootnode1-testnet.whitebit.network:30303",
 	"enode://15dd558bda09365ae0e86ab980c7192e50b91b07f308ece9d3ca1bd00ca7f0ff9a4f96f0ca0affb686e8453e4209e58cdc1c6504da2750f7766348121dad2f14@bootnode2-testnet.whitebit.network:30303",

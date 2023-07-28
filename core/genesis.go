@@ -195,6 +195,8 @@ func CommitGenesisState(db ethdb.Database, triedb *trie.Database, blockhash comm
 			genesis = DefaultGoerliGenesisBlock()
 		case params.SepoliaGenesisHash:
 			genesis = DefaultSepoliaGenesisBlock()
+		case params.WbtMainnetGenesisHash:
+			genesis = DefaultWbtMainnetGenesisBlock()
 		case params.WbtTestnetGenesisHash:
 			genesis = DefaultWbtTestnetGenesisBlock()
 		}
@@ -429,6 +431,8 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return params.RinkebyChainConfig
 	case ghash == params.GoerliGenesisHash:
 		return params.GoerliChainConfig
+	case ghash == params.WbtMainnetGenesisHash:
+		return params.WbtMainnetChainConfig
 	case ghash == params.WbtTestnetGenesisHash:
 		return params.WbtTestnetChainConfig
 	default:
@@ -572,7 +576,25 @@ func DefaultSepoliaGenesisBlock() *Genesis {
 	}
 }
 
-// DefaultWbtTestnetGenesisBlock returns the WhiteBIT test network genesis block.
+// DefaultWbtMainnetGenesisBlock returns the WhiteBIT mainnet genesis block.
+func DefaultWbtMainnetGenesisBlock() *Genesis {
+	var alloc GenesisAlloc
+
+	if err := json.Unmarshal([]byte(wbtMainnetAllocData), &alloc); err != nil {
+		panic(err)
+	}
+
+	return &Genesis{
+		Config:     params.WbtMainnetChainConfig,
+		Timestamp:  1691150400,
+		ExtraData:  hexutil.MustDecode("0x0000000000000000000000000000000000000000000000000000000000000000a3e7238883a8c53d218dabf4a2541b569ac0b2320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+		GasLimit:   30000000,
+		Difficulty: big.NewInt(1),
+		Alloc:      alloc,
+	}
+}
+
+// DefaultWbtTestnetGenesisBlock returns the WhiteBIT testnet genesis block.
 func DefaultWbtTestnetGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.WbtTestnetChainConfig,
