@@ -157,9 +157,14 @@ var (
 		Usage:    "Sepolia network: pre-configured proof-of-work test network",
 		Category: flags.EthCategory,
 	}
+	WbtMainnetFlag = &cli.BoolFlag{
+		Name:     "wbt-mainnet",
+		Usage:    "WhiteBIT mainnet",
+		Category: flags.EthCategory,
+	}
 	WbtTestnetFlag = &cli.BoolFlag{
 		Name:     "wbt-testnet",
-		Usage:    "WhiteBIT test network",
+		Usage:    "WhiteBIT testnet",
 		Category: flags.EthCategory,
 	}
 
@@ -1010,7 +1015,7 @@ var (
 		WbtTestnetFlag,
 	}
 	// NetworkFlags is the flag group of all built-in supported networks.
-	NetworkFlags = append([]cli.Flag{MainnetFlag}, TestnetFlags...)
+	NetworkFlags = append([]cli.Flag{MainnetFlag, WbtMainnetFlag}, TestnetFlags...)
 
 	// DatabasePathFlags is the flag group of all database path flags.
 	DatabasePathFlags = []cli.Flag{
@@ -1093,6 +1098,8 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		urls = params.RinkebyBootnodes
 	case ctx.Bool(GoerliFlag.Name):
 		urls = params.GoerliBootnodes
+	case ctx.Bool(WbtMainnetFlag.Name):
+		urls = params.WbtMainnetBootnodes
 	case ctx.Bool(WbtTestnetFlag.Name):
 		urls = params.WbtTestnetBootnodes
 	}
@@ -1736,7 +1743,7 @@ func CheckExclusive(ctx *cli.Context, args ...interface{}) {
 // SetEthConfig applies eth-related command line flags to the config.
 func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 	// Avoid conflicting network flags
-	CheckExclusive(ctx, MainnetFlag, DeveloperFlag, RinkebyFlag, GoerliFlag, SepoliaFlag, WbtTestnetFlag)
+	CheckExclusive(ctx, MainnetFlag, DeveloperFlag, RinkebyFlag, GoerliFlag, SepoliaFlag, WbtMainnetFlag, WbtTestnetFlag)
 	CheckExclusive(ctx, LightServeFlag, SyncModeFlag, "light")
 	CheckExclusive(ctx, DeveloperFlag, ExternalSignerFlag) // Can't use both ephemeral unlocked and external signer
 	if ctx.String(GCModeFlag.Name) == "archive" && ctx.Uint64(TxLookupLimitFlag.Name) != 0 {
@@ -1902,6 +1909,11 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 		}
 		cfg.Genesis = core.DefaultGoerliGenesisBlock()
 		SetDNSDiscoveryDefaults(cfg, params.GoerliGenesisHash)
+	case ctx.Bool(WbtMainnetFlag.Name):
+		if !ctx.IsSet(NetworkIdFlag.Name) {
+			cfg.NetworkId = 1875
+		}
+		cfg.Genesis = core.DefaultWbtMainnetGenesisBlock()
 	case ctx.Bool(WbtTestnetFlag.Name):
 		if !ctx.IsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 2625
@@ -2227,6 +2239,8 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 		genesis = core.DefaultRinkebyGenesisBlock()
 	case ctx.Bool(GoerliFlag.Name):
 		genesis = core.DefaultGoerliGenesisBlock()
+	case ctx.Bool(WbtMainnetFlag.Name):
+		genesis = core.DefaultWbtMainnetGenesisBlock()
 	case ctx.Bool(WbtTestnetFlag.Name):
 		genesis = core.DefaultWbtTestnetGenesisBlock()
 	case ctx.Bool(DeveloperFlag.Name):

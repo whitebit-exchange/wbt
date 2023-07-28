@@ -32,6 +32,7 @@ var (
 	SepoliaGenesisHash    = common.HexToHash("0x25a5cc106eea7138acab33231d7160d69cb777ee0c2c553fcddf5138993e6dd9")
 	RinkebyGenesisHash    = common.HexToHash("0x6341fd3daf94b748c72ced5a5b26028f2474f5f00d824504e4fa37a75767e177")
 	GoerliGenesisHash     = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
+	WbtMainnetGenesisHash = common.HexToHash("0xf3a3fd4abec23543e11af0fe4aad793a8548e186463a26ee003e4912fa5fdafc")
 	WbtTestnetGenesisHash = common.HexToHash("0x3786ce655da7e41d4164e255422df800c7276d94b0c4b10f856ae67ab48119c4")
 )
 
@@ -223,7 +224,45 @@ var (
 		Threshold: 2,
 	}
 
-	// WbtTestnetChainConfig contains config for the WhiteBIT test network
+	WbtMainnetFeeCollector = common.HexToAddress("0x0000000000000000000000000000000000001001")
+	WbtMainnetMintOwner    = common.HexToAddress("0x6960B8EC5EEa77009F05b793c1865ba4F5168cb8")
+	WbtMainnetMintLimit    = new(big.Int).Mul(big.NewInt(400000000), big.NewInt(Ether))
+
+	// WbtMainnetChainConfig contains config for the WhiteBIT mainnet
+	WbtMainnetChainConfig = &ChainConfig{
+		ChainID:                       big.NewInt(1875),
+		HomesteadBlock:                big.NewInt(0),
+		DAOForkBlock:                  nil,
+		DAOForkSupport:                false,
+		EIP150Block:                   big.NewInt(0),
+		EIP155Block:                   big.NewInt(0),
+		EIP158Block:                   big.NewInt(0),
+		ByzantiumBlock:                big.NewInt(0),
+		ConstantinopleBlock:           big.NewInt(0),
+		PetersburgBlock:               big.NewInt(0),
+		IstanbulBlock:                 big.NewInt(0),
+		MuirGlacierBlock:              nil,
+		BerlinBlock:                   nil,
+		LondonBlock:                   nil,
+		ArrowGlacierBlock:             nil,
+		TerminalTotalDifficulty:       nil,
+		TerminalTotalDifficultyPassed: false,
+		Clique: &CliqueConfig{
+			Period: 2,
+			Epoch:  30000,
+		},
+		MintContract: &MintContractConfig{
+			ActivationBlock: big.NewInt(1),
+			OwnerAddress:    WbtMainnetMintOwner,
+			MintLimit:       (*math.HexOrDecimal256)(WbtMainnetMintLimit),
+		},
+		FeeCollectorAddress: &WbtMainnetFeeCollector,
+	}
+
+	WbtTestnetMintOwner = common.HexToAddress("0xF8bd3D4C4482bDFF5e6be5f5029ab08Ad0401642")
+	WbtTestnetMintLimit = new(big.Int).Mul(big.NewInt(400000000), big.NewInt(Ether))
+
+	// WbtTestnetChainConfig contains config for the WhiteBIT testnet
 	WbtTestnetChainConfig = &ChainConfig{
 		ChainID:                       big.NewInt(2625),
 		HomesteadBlock:                big.NewInt(0),
@@ -248,8 +287,8 @@ var (
 		},
 		MintContract: &MintContractConfig{
 			ActivationBlock: big.NewInt(3746350),
-			OwnerAddress:    common.HexToAddress("0xF8bd3D4C4482bDFF5e6be5f5029ab08Ad0401642"),
-			MintLimit:       (*math.HexOrDecimal256)(new(big.Int).Mul(big.NewInt(400000000), big.NewInt(Ether))),
+			OwnerAddress:    WbtTestnetMintOwner,
+			MintLimit:       (*math.HexOrDecimal256)(WbtTestnetMintLimit),
 		},
 	}
 
@@ -377,6 +416,7 @@ var NetworkNames = map[string]string{
 	RinkebyChainConfig.ChainID.String():    "rinkeby",
 	GoerliChainConfig.ChainID.String():     "goerli",
 	SepoliaChainConfig.ChainID.String():    "sepolia",
+	WbtMainnetChainConfig.ChainID.String(): "wbt-mainnet",
 	WbtTestnetChainConfig.ChainID.String(): "wbt-testnet",
 }
 
