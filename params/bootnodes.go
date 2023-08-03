@@ -63,7 +63,11 @@ var GoerliBootnodes = []string{
 	"enode://d2b720352e8216c9efc470091aa91ddafc53e222b32780f505c817ceef69e01d5b0b0797b69db254c586f493872352f5a022b4d8479a00fc92ec55f9ad46a27e@88.99.70.182:30303",
 }
 
-var WbtMainnetBootnodes []string // Todo: specify
+var WbtMainnetBootnodes = []string{
+	"enode://57c5ddde0b818b4a2444818824e3f92407788d2d21b1eaacfbcba633329ddcdbc581da38f1d164746350936620e459d011de3c54fc8e41821e26a776bcd48c21@bootnode1.whitebit.network:30303",
+	"enode://32ede37c6615b7177133ea9bc85a392218a66e06b3bcf98788a15a30527abb24b5959e75af12fffdc673d72d4d1b707f330c900298d535d492c7f56d943f796e@bootnode2.whitebit.network:30303",
+	"enode://6732855203b88dd6155870083d233f67ddf57e366dfbcb62b098fd915dfbd8a0019f4a9c51df3b1b65e5671947f20060a7097aba634d7125b980e8cc3b3b1deb@bootnode3.whitebit.network:30303",
+}
 
 var WbtTestnetBootnodes = []string{
 	"enode://5da705c3da6701cade478c078c6c655a1996127d6141c9ced4cd7dd0f01a999333db0ca7efe322d0ea5cec94d8dd8fd2064035cc1e7b59d843ca156fa2280626@bootnode1-testnet.whitebit.network:30303",
