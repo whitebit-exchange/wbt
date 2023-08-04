@@ -174,6 +174,7 @@ func TestGenesisHashes(t *testing.T) {
 		{DefaultGoerliGenesisBlock(), params.GoerliGenesisHash},
 		{DefaultRinkebyGenesisBlock(), params.RinkebyGenesisHash},
 		{DefaultSepoliaGenesisBlock(), params.SepoliaGenesisHash},
+		{DefaultWbtMainnetGenesisBlock(), params.WbtMainnetGenesisHash},
 		{DefaultWbtTestnetGenesisBlock(), params.WbtTestnetGenesisHash},
 	} {
 		// Test via MustCommit
