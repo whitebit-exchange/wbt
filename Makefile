@@ -25,6 +25,7 @@ lint: ## Run linters.
 clean:
 	env GO111MODULE=on go clean -cache
 	rm -fr build/_workspace/pkg/ $(GOBIN)/*
+	123
 
 # The devtools target installs tools required for 'go generate'.
 # You need to put $GOBIN (or $GOPATH/bin) in your PATH to use 'go generate'.
