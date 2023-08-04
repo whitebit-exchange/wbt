@@ -282,8 +282,11 @@ func prepare(ctx *cli.Context) {
 	case ctx.IsSet(utils.SepoliaFlag.Name):
 		log.Info("Starting Geth on Sepolia testnet...")
 
+	case ctx.IsSet(utils.WbtMainnetFlag.Name):
+		log.Info("Starting Geth on WhiteBIT mainnet...")
+
 	case ctx.IsSet(utils.WbtTestnetFlag.Name):
-		log.Info("Starting Geth on WhiteBIT test network...")
+		log.Info("Starting Geth on WhiteBIT testnet...")
 
 	case ctx.IsSet(utils.DeveloperFlag.Name):
 		log.Info("Starting Geth in ephemeral dev mode...")
