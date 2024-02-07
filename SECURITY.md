@@ -6,7 +6,7 @@ Please see [Releases](https://github.com/ethereum/go-ethereum/releases). We reco
 
 ## Audit reports
 
-Audit reports are published in the `docs` folder: https://github.com/ethereum/go-ethereum/tree/master/docs/audits 
+Audit reports are published in the `docs` folder: https://github.com/ethereum/go-ethereum/tree/master/docs/audits
 
 | Scope | Date | Report Link |
 | ------- | ------- | ----------- |
@@ -19,11 +19,11 @@ Audit reports are published in the `docs` folder: https://github.com/ethereum/go
 
 **Please do not file a public ticket** mentioning the vulnerability.
 
-If you have found a vulnerability in WB Network and would like to report it to us, please visit [https://explorer.whitebit.network/testnet/bug-bounty](https://explorer.whitebit.network/testnet/bug-bounty). You can fill out the BugBounty report and get rewarded if your report meets our requirements.
+If you have found a vulnerability in Whitechain and would like to report it to us, please visit [https://explorer.whitebit.network/testnet/bug-bounty](https://explorer.whitebit.network/testnet/bug-bounty). You can fill out the BugBounty report and get rewarded if your report meets our requirements.
 We ask that all researchers:
 - Make every effort to avoid privacy violations, degradation of user experience, disruption to production systems, and destruction of data during security testing
 - Use the identified communication channels to report vulnerability information to us
-- Report vulnerabilities as soon as you discover it, but keep it confidential between yourself and WB Network until we’ve resolved the issue
+- Report vulnerabilities as soon as you discover it, but keep it confidential between yourself and Whitechain until we’ve resolved the issue
 - Please follow the rules of the BugBounty program
 - Provide us with at least 7 working days to investigate the issue and revert back to you
 
