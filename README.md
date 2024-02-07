@@ -1,7 +1,7 @@
-## WB Network
+## Whitechain
 
 To ensure compatibility with existing technology and to leverage the
-benefits of a popular community, WB Network has chosen to remain
+benefits of a popular community, Whitechain has chosen to remain
 compatible with all existing smart contracts on Ethereum and Ethereum
 tooling. This has been achieved by developing based on a go-ethereum
 fork, as the team holds high respect for the excellent work of Ethereum:
@@ -10,10 +10,10 @@ fork, as the team holds high respect for the excellent work of Ethereum:
 https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f676f6c616e672f6764646f3f7374617475732e737667
 )](https://pkg.go.dev/github.com/ethereum/go-ethereum?tab=doc)
 
-WB Network has rolled out a new EVM-compatible network utilizing 
-Proof of Authority (PoA) consensus to enable shorter block times 
-and reduced fees. As its development is based on go-ethereum fork, 
-you may observe that many toolings, binaries, and documentation are 
+Whitechain has rolled out a new EVM-compatible network utilizing
+Proof of Authority (PoA) consensus to enable shorter block times
+and reduced fees. As its development is based on go-ethereum fork,
+you may observe that many toolings, binaries, and documentation are
 based on Ethereum.
 
 ### PoA consensus
@@ -40,9 +40,9 @@ authorized network nodes, leading to a higher transaction rate
 * PoA consensus is tolerant to compromised and malicious nodes,
 as long as 51% of nodes are not compromised
 
-#### How PoA consensus works in WB Network
+#### How PoA consensus works in Whitechain
 
-In WB Network, only selected nodes known as validators (validating nodes) can
+In Whitechain, only selected nodes known as validators (validating nodes) can
 generate new blocks. These nodes are responsible for maintaining the
 blockchain network and the distributed ledger. The blockchain registry
 maintains the list of validators, and the order of nodes in this list
@@ -71,7 +71,7 @@ Do not forget `--http.addr 0.0.0.0`, if you want to access RPC from other contai
 and/or hosts. By default, `geth` binds to the local interface and RPC endpoints are not
 accessible from the outside.
 
-#### Monitor logs 
+#### Monitor logs
 You can check if your node has started syncing by looking for the following log messages:
 ```text
 INFO [04-12|09:59:58.554] Imported new block receipts              count=21  elapsed=10.245ms  number=21  hash=f4b1f9..0b33a4 age=1w4d20h size=7.25KiB
@@ -99,7 +99,7 @@ make all
 
 ## Executables
 
-The WB Network project comes with several wrappers/executables found in the `cmd`
+The Whitechain project comes with several wrappers/executables found in the `cmd`
 directory.
 
 |   Command   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -196,7 +196,7 @@ APIs!**
 Thank you for considering to help out with the source code! We welcome contributions
 from anyone on the internet, and are grateful for even the smallest of fixes!
 
-If you'd like to contribute to WB Network, please fork, fix, commit and send a pull request
+If you'd like to contribute to Whitechain, please fork, fix, commit and send a pull request
 for the maintainers to review and merge into the main code base. If you wish to submit
 more complex changes though, please write us a Github issue!
 
