@@ -58,15 +58,12 @@ func TestIterator(t *testing.T) {
 	all := make(map[string]string)
 	for _, val := range vals {
 		all[val.k] = val.v
-		trie.Update([]byte(val.k), []byte(val.v))
+		trie.MustUpdate([]byte(val.k), []byte(val.v))
 	}
-	root, nodes, err := trie.Commit(false)
-	if err != nil {
-		t.Fatalf("Failed to commit trie %v", err)
-	}
+	root, nodes := trie.Commit(false)
 	db.Update(NewWithNodeSet(nodes))
 
-	trie, _ = New(common.Hash{}, root, db)
+	trie, _ = New(TrieID(root), db)
 	found := make(map[string]string)
 	it := NewIterator(trie.NodeIterator(nil))
 	for it.Next() {
@@ -92,8 +89,8 @@ func TestIteratorLargeData(t *testing.T) {
 	for i := byte(0); i < 255; i++ {
 		value := &kv{common.LeftPadBytes([]byte{i}, 32), []byte{i}, false}
 		value2 := &kv{common.LeftPadBytes([]byte{10, i}, 32), []byte{i}, false}
-		trie.Update(value.k, value.v)
-		trie.Update(value2.k, value2.v)
+		trie.MustUpdate(value.k, value.v)
+		trie.MustUpdate(value2.k, value2.v)
 		vals[string(value.k)] = value
 		vals[string(value2.k)] = value2
 	}
@@ -181,7 +178,7 @@ var testdata2 = []kvs{
 func TestIteratorSeek(t *testing.T) {
 	trie := NewEmpty(NewDatabase(rawdb.NewMemoryDatabase()))
 	for _, val := range testdata1 {
-		trie.Update([]byte(val.k), []byte(val.v))
+		trie.MustUpdate([]byte(val.k), []byte(val.v))
 	}
 
 	// Seek to the middle.
@@ -223,20 +220,20 @@ func TestDifferenceIterator(t *testing.T) {
 	dba := NewDatabase(rawdb.NewMemoryDatabase())
 	triea := NewEmpty(dba)
 	for _, val := range testdata1 {
-		triea.Update([]byte(val.k), []byte(val.v))
+		triea.MustUpdate([]byte(val.k), []byte(val.v))
 	}
-	rootA, nodesA, _ := triea.Commit(false)
+	rootA, nodesA := triea.Commit(false)
 	dba.Update(NewWithNodeSet(nodesA))
-	triea, _ = New(common.Hash{}, rootA, dba)
+	triea, _ = New(TrieID(rootA), dba)
 
 	dbb := NewDatabase(rawdb.NewMemoryDatabase())
 	trieb := NewEmpty(dbb)
 	for _, val := range testdata2 {
-		trieb.Update([]byte(val.k), []byte(val.v))
+		trieb.MustUpdate([]byte(val.k), []byte(val.v))
 	}
-	rootB, nodesB, _ := trieb.Commit(false)
+	rootB, nodesB := trieb.Commit(false)
 	dbb.Update(NewWithNodeSet(nodesB))
-	trieb, _ = New(common.Hash{}, rootB, dbb)
+	trieb, _ = New(TrieID(rootB), dbb)
 
 	found := make(map[string]string)
 	di, _ := NewDifferenceIterator(triea.NodeIterator(nil), trieb.NodeIterator(nil))
@@ -265,20 +262,20 @@ func TestUnionIterator(t *testing.T) {
 	dba := NewDatabase(rawdb.NewMemoryDatabase())
 	triea := NewEmpty(dba)
 	for _, val := range testdata1 {
-		triea.Update([]byte(val.k), []byte(val.v))
+		triea.MustUpdate([]byte(val.k), []byte(val.v))
 	}
-	rootA, nodesA, _ := triea.Commit(false)
+	rootA, nodesA := triea.Commit(false)
 	dba.Update(NewWithNodeSet(nodesA))
-	triea, _ = New(common.Hash{}, rootA, dba)
+	triea, _ = New(TrieID(rootA), dba)
 
 	dbb := NewDatabase(rawdb.NewMemoryDatabase())
 	trieb := NewEmpty(dbb)
 	for _, val := range testdata2 {
-		trieb.Update([]byte(val.k), []byte(val.v))
+		trieb.MustUpdate([]byte(val.k), []byte(val.v))
 	}
-	rootB, nodesB, _ := trieb.Commit(false)
+	rootB, nodesB := trieb.Commit(false)
 	dbb.Update(NewWithNodeSet(nodesB))
-	trieb, _ = New(common.Hash{}, rootB, dbb)
+	trieb, _ = New(TrieID(rootB), dbb)
 
 	di, _ := NewUnionIterator([]NodeIterator{triea.NodeIterator(nil), trieb.NodeIterator(nil)})
 	it := NewIterator(di)
@@ -317,7 +314,7 @@ func TestUnionIterator(t *testing.T) {
 func TestIteratorNoDups(t *testing.T) {
 	tr := NewEmpty(NewDatabase(rawdb.NewMemoryDatabase()))
 	for _, val := range testdata1 {
-		tr.Update([]byte(val.k), []byte(val.v))
+		tr.MustUpdate([]byte(val.k), []byte(val.v))
 	}
 	checkIteratorNoDups(t, tr.NodeIterator(nil), nil)
 }
@@ -327,17 +324,17 @@ func TestIteratorContinueAfterErrorDisk(t *testing.T)    { testIteratorContinueA
 func TestIteratorContinueAfterErrorMemonly(t *testing.T) { testIteratorContinueAfterError(t, true) }
 
 func testIteratorContinueAfterError(t *testing.T, memonly bool) {
-	diskdb := memorydb.New()
+	diskdb := rawdb.NewMemoryDatabase()
 	triedb := NewDatabase(diskdb)
 
 	tr := NewEmpty(triedb)
 	for _, val := range testdata1 {
-		tr.Update([]byte(val.k), []byte(val.v))
+		tr.MustUpdate([]byte(val.k), []byte(val.v))
 	}
-	_, nodes, _ := tr.Commit(false)
+	_, nodes := tr.Commit(false)
 	triedb.Update(NewWithNodeSet(nodes))
 	if !memonly {
-		triedb.Commit(tr.Hash(), true, nil)
+		triedb.Commit(tr.Hash(), false)
 	}
 	wantNodeCount := checkIteratorNoDups(t, tr.NodeIterator(nil), nil)
 
@@ -356,7 +353,7 @@ func testIteratorContinueAfterError(t *testing.T, memonly bool) {
 	}
 	for i := 0; i < 20; i++ {
 		// Create trie that will load all nodes from DB.
-		tr, _ := New(common.Hash{}, tr.Hash(), triedb)
+		tr, _ := New(TrieID(tr.Hash()), triedb)
 
 		// Remove a random node from the database. It can't be the root node
 		// because that one is already loaded.
@@ -419,17 +416,17 @@ func TestIteratorContinueAfterSeekErrorMemonly(t *testing.T) {
 
 func testIteratorContinueAfterSeekError(t *testing.T, memonly bool) {
 	// Commit test trie to db, then remove the node containing "bars".
-	diskdb := memorydb.New()
+	diskdb := rawdb.NewMemoryDatabase()
 	triedb := NewDatabase(diskdb)
 
 	ctr := NewEmpty(triedb)
 	for _, val := range testdata1 {
-		ctr.Update([]byte(val.k), []byte(val.v))
+		ctr.MustUpdate([]byte(val.k), []byte(val.v))
 	}
-	root, nodes, _ := ctr.Commit(false)
+	root, nodes := ctr.Commit(false)
 	triedb.Update(NewWithNodeSet(nodes))
 	if !memonly {
-		triedb.Commit(root, true, nil)
+		triedb.Commit(root, false)
 	}
 	barNodeHash := common.HexToHash("05041990364eb72fcb1127652ce40d8bab765f2bfe53225b1170d276cc101c2e")
 	var (
@@ -445,7 +442,7 @@ func testIteratorContinueAfterSeekError(t *testing.T, memonly bool) {
 	}
 	// Create a new iterator that seeks to "bars". Seeking can't proceed because
 	// the node is missing.
-	tr, _ := New(common.Hash{}, root, triedb)
+	tr, _ := New(TrieID(root), triedb)
 	it := tr.NodeIterator([]byte("bars"))
 	missing, ok := it.Error().(*MissingNodeError)
 	if !ok {
@@ -532,8 +529,8 @@ func (l *loggingDb) Close() error {
 func makeLargeTestTrie() (*Database, *StateTrie, *loggingDb) {
 	// Create an empty trie
 	logDb := &loggingDb{0, memorydb.New()}
-	triedb := NewDatabase(logDb)
-	trie, _ := NewStateTrie(common.Hash{}, common.Hash{}, triedb)
+	triedb := NewDatabase(rawdb.NewDatabase(logDb))
+	trie, _ := NewStateTrie(TrieID(common.Hash{}), triedb)
 
 	// Fill it with some arbitrary data
 	for i := 0; i < 10000; i++ {
@@ -543,9 +540,9 @@ func makeLargeTestTrie() (*Database, *StateTrie, *loggingDb) {
 		binary.BigEndian.PutUint64(val, uint64(i))
 		key = crypto.Keccak256(key)
 		val = crypto.Keccak256(val)
-		trie.Update(key, val)
+		trie.MustUpdate(key, val)
 	}
-	_, nodes, _ := trie.Commit(false)
+	_, nodes := trie.Commit(false)
 	triedb.Update(NewWithNodeSet(nodes))
 	// Return the generated trie
 	return triedb, trie, logDb
@@ -567,7 +564,7 @@ func TestNodeIteratorLargeTrie(t *testing.T) {
 
 func TestIteratorNodeBlob(t *testing.T) {
 	var (
-		db     = memorydb.New()
+		db     = rawdb.NewMemoryDatabase()
 		triedb = NewDatabase(db)
 		trie   = NewEmpty(triedb)
 	)
@@ -583,9 +580,9 @@ func TestIteratorNodeBlob(t *testing.T) {
 	all := make(map[string]string)
 	for _, val := range vals {
 		all[val.k] = val.v
-		trie.Update([]byte(val.k), []byte(val.v))
+		trie.MustUpdate([]byte(val.k), []byte(val.v))
 	}
-	_, nodes, _ := trie.Commit(false)
+	_, nodes := trie.Commit(false)
 	triedb.Update(NewWithNodeSet(nodes))
 	triedb.Cap(0)
 
