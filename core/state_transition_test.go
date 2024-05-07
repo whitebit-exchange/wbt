@@ -148,7 +148,7 @@ func TestIncorrectMintInstruction(t *testing.T) {
 			evm := vm.NewEVM(blockCtx, vm.TxContext{}, stateDb, chainConfig, vm.Config{NoBaseFee: true})
 
 			tx, _ := types.SignNewTx(testCase.signerKey, signer, testCase.tx)
-			message, _ := tx.AsMessage(signer, nil)
+			message, _ := TransactionToMessage(tx, signer, nil)
 			result, err := ApplyMessage(evm, message, new(GasPool).AddGas(math.MaxUint64))
 
 			sender, _ := signer.Sender(tx)
@@ -196,7 +196,7 @@ func TestOutOfGas(t *testing.T) {
 		GasPrice: big.NewInt(params.GWei),
 	})
 
-	message, _ := tx.AsMessage(signer, nil)
+	message, _ := TransactionToMessage(tx, signer, nil)
 
 	result, err := ApplyMessage(evm, message, new(GasPool).AddGas(math.MaxUint64))
 
@@ -216,8 +216,23 @@ func TestTransactionToCommonAddressWith65BytesData(t *testing.T) {
 		BlockNumber: blockNum,
 	}
 
-	chainConfig := params.AllCliqueProtocolChanges
-	chainConfig.LondonBlock = nil
+	feeCollectorAddress := common.HexToAddress("0x1000000000000000000000000000000000000000")
+
+	chainConfig := &params.ChainConfig{
+		ChainID:             big.NewInt(1337),
+		HomesteadBlock:      big.NewInt(0),
+		EIP150Block:         big.NewInt(0),
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		ConstantinopleBlock: big.NewInt(0),
+		PetersburgBlock:     big.NewInt(0),
+		IstanbulBlock:       big.NewInt(0),
+		MuirGlacierBlock:    big.NewInt(0),
+		BerlinBlock:         big.NewInt(0),
+		Clique:              &params.CliqueConfig{Period: 0, Epoch: 30000},
+		FeeCollectorAddress: &feeCollectorAddress,
+	}
 
 	evm := vm.NewEVM(blockCtx, vm.TxContext{}, stateDb, chainConfig, vm.Config{NoBaseFee: true})
 	signer := types.HomesteadSigner{}
@@ -231,13 +246,17 @@ func TestTransactionToCommonAddressWith65BytesData(t *testing.T) {
 		GasPrice: big.NewInt(params.GWei),
 	})
 
-	message, _ := tx.AsMessage(signer, nil)
+	message, _ := TransactionToMessage(tx, signer, nil)
 
 	result, err := ApplyMessage(evm, message, new(GasPool).AddGas(math.MaxUint64))
 
 	assert.NoError(t, err)
 	assert.NoError(t, result.Err)
 	assert.Equal(t, uint64(22040), result.UsedGas)
+
+	feeAmount, _ := new(big.Int).SetString("22040000000000", 10)
+	assert.Equal(t, feeAmount, stateDb.GetBalance(feeCollectorAddress))
+	assert.Equal(t, new(big.Int), stateDb.GetBalance(evm.Context.Coinbase))
 
 	// Fee = 22040 * 1 gwei
 	// Previous balance = 1 ether
@@ -284,13 +303,17 @@ func TestSuccessfulMint(t *testing.T) {
 		GasPrice: big.NewInt(params.GWei),
 	})
 
-	message, _ := tx.AsMessage(signer, nil)
+	message, _ := TransactionToMessage(tx, signer, nil)
 
 	result, err := ApplyMessage(evm, message, new(GasPool).AddGas(math.MaxUint64))
 
 	assert.NoError(t, err)
 	assert.NoError(t, result.Err)
 	assert.Equal(t, uint64(121716), result.UsedGas)
+
+	// Fee = 121716 * 1 gwei
+	feeAmount, _ := new(big.Int).SetString("121716000000000", 10)
+	assert.Equal(t, feeAmount, stateDb.GetBalance(evm.Context.Coinbase))
 
 	// Fee = 121716 * 1 gwei
 	// Mint amount = 500 * 1 ether

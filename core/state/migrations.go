@@ -10,6 +10,9 @@ import (
 
 // Migration represents a single state migration.
 type Migration interface {
+	// Block returns block height for migration execution
+	Block() *big.Int
+
 	// Name returns migration name
 	Name() string
 
@@ -27,23 +30,29 @@ type Migrations map[uint64][]Migration
 func InitMigrations(config *params.ChainConfig) Migrations {
 	output := make(Migrations)
 
-	if config.MintContract != nil && config.MintContract.ActivationBlock != nil {
-		migration, err := migrations.NewMintContractMigration(config.MintContract)
-		if err != nil {
-			log.Crit("invalid mint contract config", "err", err)
-		}
+	// All available migrations should be defined here
+	availableMigrations := []Migration{
+		migrations.NewMintContractMigration(config),
+	}
 
-		output.append(config.MintContract.ActivationBlock.Uint64(), migration)
+	for _, migration := range availableMigrations {
+		output.register(migration)
 	}
 
 	return output
 }
 
-func (m Migrations) append(blockHeight uint64, migration Migration) {
-	if existingMigrations, exists := m[blockHeight]; !exists {
-		m[blockHeight] = []Migration{migration}
+func (m Migrations) register(migration Migration) {
+	if migration.Block() == nil {
+		return
+	}
+
+	block := migration.Block().Uint64()
+
+	if existingMigrations, exists := m[block]; !exists {
+		m[block] = []Migration{migration}
 	} else {
-		m[blockHeight] = append(existingMigrations, migration)
+		m[block] = append(existingMigrations, migration)
 	}
 }
 

@@ -60,7 +60,7 @@ Open a terminal or command prompt, then enter:
 docker run --rm -it \
   --name wbt -v /Users/alice/wbt:/root \
   -p 8545:8545 -p 30303:30303 \
-  whitebit/wbt:0.2.0 --wbt-testnet
+  whitebit/wbt:1.0.0 --wbt-mainnet
 ```
 
 This will start `geth` in snap-sync mode with a DB memory allowance of 1GB just as the
@@ -72,12 +72,14 @@ and/or hosts. By default, `geth` binds to the local interface and RPC endpoints 
 accessible from the outside.
 
 #### Monitor logs
+If you want to run Whitechain testnet node, you need to start `geth` with `--wbt-testnet` instead of `--wbt-mainnet`.
+
+#### Monitor logs 
 You can check if your node has started syncing by looking for the following log messages:
 ```text
-INFO [04-12|09:59:58.554] Imported new block receipts              count=21  elapsed=10.245ms  number=21  hash=f4b1f9..0b33a4 age=1w4d20h size=7.25KiB
-INFO [04-12|09:59:58.645] Imported new block headers               count=192 elapsed=105.222ms number=768 hash=0fc521..d533e8 age=1w4d19h
-INFO [04-12|09:59:58.670] Imported new block receipts              count=21  elapsed=5.967ms   number=42  hash=f6c9ed..38c629 age=1w4d20h size=7.16KiB
-INFO [04-12|09:59:58.673] Imported new block receipts              count=11  elapsed=2.979ms   number=53  hash=c78894..0acd7c age=1w4d20h size=3.84KiB
+INFO [08-04|12:00:00.000] Block synchronisation started 
+INFO [08-04|12:00:00.001] Syncing: state download in progress      synced=6.25% state=302.12KiB accounts=1282@302.12KiB slots=0@0.00B codes=0@0.00B eta=17.148s
+INFO [08-04|12:00:00.002] Syncing: chain download in progress      synced=0.01% chain=18.00B headers=1536@6.00B bodies=4@6.00B receipts=4@6.00B eta=1h49m39.978s
 ```
 
 ## Building the source
@@ -125,10 +127,10 @@ Minimum:
 
 CPU with 2+ cores
 8GB RAM
-100GB free storage space to sync the Testnet
+100GB free storage space to sync the blockchain
 8 MBit/sec download Internet service
 
-Recommended (Testnet):
+Recommended:
 Fast CPU with 4+ cores
 16GB+ RAM
 High-performance SSD with at least 500GB of free space
@@ -140,14 +142,14 @@ As an alternative to passing the numerous flags to the `geth` binary, you can al
 configuration file via:
 
 ```shell
-$ geth --wbt-testnet --config /path/to/your_config.toml
+$ geth --wbt-mainnet --config /path/to/your_config.toml
 ```
 
 To get an idea how the file should look like you can use the `dumpconfig` subcommand to
 export your existing configuration:
 
 ```shell
-$ geth --wbt-testnet  --your-favourite-flags dumpconfig
+$ geth --wbt-mainnet --your-favourite-flags dumpconfig
 ```
 
 ### Programmatically interfacing `geth` nodes

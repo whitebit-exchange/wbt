@@ -28,6 +28,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -179,7 +180,6 @@ func Transition(ctx *cli.Context) error {
 
 	vmConfig := vm.Config{
 		Tracer: tracer,
-		Debug:  (tracer != nil),
 	}
 	// Construct the chainconfig
 	var chainConfig *params.ChainConfig
@@ -247,9 +247,22 @@ func Transition(ctx *cli.Context) error {
 	}
 	// Sanity check, to not `panic` in state_transition
 	if chainConfig.IsLondon(big.NewInt(int64(prestate.Env.Number))) {
-		if prestate.Env.BaseFee == nil {
+		if prestate.Env.BaseFee != nil {
+			// Already set, base fee has precedent over parent base fee.
+		} else if prestate.Env.ParentBaseFee != nil && prestate.Env.Number != 0 {
+			parent := &types.Header{
+				Number:   new(big.Int).SetUint64(prestate.Env.Number - 1),
+				BaseFee:  prestate.Env.ParentBaseFee,
+				GasUsed:  prestate.Env.ParentGasUsed,
+				GasLimit: prestate.Env.ParentGasLimit,
+			}
+			prestate.Env.BaseFee = misc.CalcBaseFee(chainConfig, parent)
+		} else {
 			return NewError(ErrorConfig, errors.New("EIP-1559 config but missing 'currentBaseFee' in env section"))
 		}
+	}
+	if chainConfig.IsShanghai(prestate.Env.Number) && prestate.Env.Withdrawals == nil {
+		return NewError(ErrorConfig, errors.New("Shanghai config but missing 'withdrawals' in env section"))
 	}
 	isMerged := chainConfig.TerminalTotalDifficulty != nil && chainConfig.TerminalTotalDifficulty.BitLen() == 0
 	env := prestate.Env
@@ -334,8 +347,9 @@ func (t *txWithKey) UnmarshalJSON(input []byte) error {
 // signUnsignedTransactions converts the input txs to canonical transactions.
 //
 // The transactions can have two forms, either
-//   1. unsigned or
-//   2. signed
+//  1. unsigned or
+//  2. signed
+//
 // For (1), r, s, v, need so be zero, and the `secretKey` needs to be set.
 // If so, we sign it here and now, with the given `secretKey`
 // If the condition above is not met, then it's considered a signed transaction.
@@ -393,7 +407,7 @@ func (g Alloc) OnAccount(addr common.Address, dumpAccount state.DumpAccount) {
 	g[addr] = genesisAccount
 }
 
-// saveFile marshalls the object to the given file
+// saveFile marshals the object to the given file
 func saveFile(baseDir, filename string, data interface{}) error {
 	b, err := json.MarshalIndent(data, "", " ")
 	if err != nil {
