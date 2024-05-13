@@ -1,11 +1,12 @@
 package state
 
 import (
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/core/state/migrations"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"math/big"
 )
 
 // Migration represents a single state migration.
@@ -33,6 +34,7 @@ func InitMigrations(config *params.ChainConfig) Migrations {
 	// All available migrations should be defined here
 	availableMigrations := []Migration{
 		migrations.NewMintContractMigration(config),
+		migrations.NewCassiopeiaMigration(config),
 	}
 
 	for _, migration := range availableMigrations {

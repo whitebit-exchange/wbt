@@ -18,6 +18,9 @@ package vm
 
 import (
 	"errors"
+	"math/big"
+	"sync/atomic"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/mint"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -25,8 +28,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
-	"math/big"
-	"sync/atomic"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -569,7 +570,7 @@ func (evm *EVM) IsMintInstruction(receiver common.Address, data []byte) bool {
 // Otherwise, VM error will be returned and state would not change (except sender's nonce).
 func (evm *EVM) Mint(sender common.Address, data [65]byte, gas uint64) (leftOverGas uint64, err error) {
 	if evm.Config.Tracer != nil {
-		evm.Config.Tracer.CaptureStart(evm, sender, mint.Contract.Address, false, data[:], gas, nil)
+		evm.Config.Tracer.CaptureStart(evm, sender, mint.Contract.Address, false, data[:], gas, new(big.Int))
 		defer func() {
 			evm.Config.Tracer.CaptureEnd(nil, gas-leftOverGas, err)
 		}()

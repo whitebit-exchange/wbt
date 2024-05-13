@@ -19,8 +19,9 @@ package params
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/math"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/common/math"
 
 	"github.com/ethereum/go-ethereum/common"
 	"golang.org/x/crypto/sha3"
@@ -245,6 +246,7 @@ var (
 		BerlinBlock:                   nil,
 		LondonBlock:                   nil,
 		ArrowGlacierBlock:             nil,
+		CassiopeiaBlock:               big.NewInt(12571200),
 		TerminalTotalDifficulty:       nil,
 		TerminalTotalDifficultyPassed: false,
 		Clique: &CliqueConfig{
@@ -257,6 +259,10 @@ var (
 			MintLimit:       (*math.HexOrDecimal256)(WbtMainnetMintLimit),
 		},
 		FeeCollectorAddress: &WbtMainnetFeeCollector,
+		SystemContracts: &SystemContracts{
+			HoldAmount: common.HexToAddress("0xE6246B2C5bC67976eD6e28583e94a2a63ff36c93"),
+			SoulDrop:   common.HexToAddress("0x0000000000000000000000000000000000001001"),
+		},
 	}
 
 	WbtTestnetMintOwner = common.HexToAddress("0xF8bd3D4C4482bDFF5e6be5f5029ab08Ad0401642")
@@ -496,6 +502,7 @@ type ChainConfig struct {
 	ArrowGlacierBlock   *big.Int `json:"arrowGlacierBlock,omitempty"`   // Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated)
 	GrayGlacierBlock    *big.Int `json:"grayGlacierBlock,omitempty"`    // Eip-5133 (bomb delay) switch block (nil = no fork, 0 = already activated)
 	MergeNetsplitBlock  *big.Int `json:"mergeNetsplitBlock,omitempty"`  // Virtual fork after The Merge to use as a network splitter
+	CassiopeiaBlock     *big.Int `json:"cassiopeiaBlock,omitempty"`
 
 	// Fork scheduling was switched from blocks to timestamps here
 
@@ -519,12 +526,19 @@ type ChainConfig struct {
 	Clique *CliqueConfig `json:"clique,omitempty"`
 
 	FeeCollectorAddress *common.Address `json:"feeCollectorAddress,omitempty"`
+
+	SystemContracts *SystemContracts `json:"systemContracts,omitempty"`
 }
 
 type MintContractConfig struct {
 	ActivationBlock *big.Int              `json:"activationBlock"`
 	OwnerAddress    common.Address        `json:"ownerAddress"`
 	MintLimit       *math.HexOrDecimal256 `json:"mintLimit"`
+}
+
+type SystemContracts struct {
+	SoulDrop   common.Address `json:"soulDrop"`
+	HoldAmount common.Address `json:"holdAmount"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
