@@ -287,7 +287,7 @@ var (
 		LondonBlock:                   nil,
 		ArrowGlacierBlock:             nil,
 		CassiopeiaBlock:               nil,
-		CepheusBlock:                  nil,
+		CepheusBlock:                  big.NewInt(28069512),
 		TerminalTotalDifficulty:       nil,
 		TerminalTotalDifficultyPassed: false,
 		Clique: &CliqueConfig{
@@ -506,7 +506,7 @@ type ChainConfig struct {
 	GrayGlacierBlock    *big.Int `json:"grayGlacierBlock,omitempty"`    // Eip-5133 (bomb delay) switch block (nil = no fork, 0 = already activated)
 	MergeNetsplitBlock  *big.Int `json:"mergeNetsplitBlock,omitempty"`  // Virtual fork after The Merge to use as a network splitter
 	CassiopeiaBlock     *big.Int `json:"cassiopeiaBlock,omitempty"`
-	CepheusBlock        *big.Int `json:"cepheusBlock,omitempty"`        // Cepheus switch block (nil = no fork, 0 = already activated)
+	CepheusBlock        *big.Int `json:"cepheusBlock,omitempty"` // Cepheus switch block (nil = no fork, 0 = already activated)
 
 	// Fork scheduling was switched from blocks to timestamps here
 
