@@ -247,6 +247,7 @@ var (
 		LondonBlock:                   nil,
 		ArrowGlacierBlock:             nil,
 		CassiopeiaBlock:               big.NewInt(12571200),
+		CepheusBlock:                  nil,
 		TerminalTotalDifficulty:       nil,
 		TerminalTotalDifficultyPassed: false,
 		Clique: &CliqueConfig{
@@ -285,6 +286,8 @@ var (
 		BerlinBlock:                   nil,
 		LondonBlock:                   nil,
 		ArrowGlacierBlock:             nil,
+		CassiopeiaBlock:               nil,
+		CepheusBlock:                  nil,
 		TerminalTotalDifficulty:       nil,
 		TerminalTotalDifficultyPassed: false,
 		Clique: &CliqueConfig{
@@ -503,6 +506,7 @@ type ChainConfig struct {
 	GrayGlacierBlock    *big.Int `json:"grayGlacierBlock,omitempty"`    // Eip-5133 (bomb delay) switch block (nil = no fork, 0 = already activated)
 	MergeNetsplitBlock  *big.Int `json:"mergeNetsplitBlock,omitempty"`  // Virtual fork after The Merge to use as a network splitter
 	CassiopeiaBlock     *big.Int `json:"cassiopeiaBlock,omitempty"`
+	CepheusBlock        *big.Int `json:"cepheusBlock,omitempty"`        // Cepheus switch block (nil = no fork, 0 = already activated)
 
 	// Fork scheduling was switched from blocks to timestamps here
 
@@ -617,6 +621,9 @@ func (c *ChainConfig) Description() string {
 	}
 	if c.GrayGlacierBlock != nil {
 		banner += fmt.Sprintf(" - Gray Glacier:                #%-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/gray-glacier.md)\n", c.GrayGlacierBlock)
+	}
+	if c.CepheusBlock != nil {
+		banner += fmt.Sprintf(" - Cepheus:                     #%-8v\n", c.CepheusBlock)
 	}
 	banner += "\n"
 
@@ -744,6 +751,11 @@ func (c *ChainConfig) IsPrague(time uint64) bool {
 	return isTimestampForked(c.PragueTime, time)
 }
 
+// IsCepheus returns whether num is either equal to the Cepheus fork block or greater.
+func (c *ChainConfig) IsCepheus(num *big.Int) bool {
+	return isBlockForked(c.CepheusBlock, num)
+}
+
 // CheckCompatible checks whether scheduled fork transitions have been imported
 // with a mismatching chain configuration.
 func (c *ChainConfig) CheckCompatible(newcfg *ChainConfig, height uint64, time uint64) *ConfigCompatError {
@@ -790,6 +802,7 @@ func (c *ChainConfig) CheckConfigForkOrder() error {
 		{name: "petersburgBlock", block: c.PetersburgBlock},
 		{name: "istanbulBlock", block: c.IstanbulBlock},
 		{name: "muirGlacierBlock", block: c.MuirGlacierBlock, optional: true},
+		{name: "cepheusBlock", block: c.CepheusBlock},
 		{name: "berlinBlock", block: c.BerlinBlock},
 		{name: "londonBlock", block: c.LondonBlock},
 		{name: "arrowGlacierBlock", block: c.ArrowGlacierBlock, optional: true},
@@ -900,6 +913,9 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, headNumber *big.Int, 
 	}
 	if isForkTimestampIncompatible(c.PragueTime, newcfg.PragueTime, headTimestamp) {
 		return newTimestampCompatError("Prague fork timestamp", c.PragueTime, newcfg.PragueTime)
+	}
+	if isForkBlockIncompatible(c.CepheusBlock, newcfg.CepheusBlock, headNumber) {
+		return newBlockCompatError("Cepheus fork block", c.CepheusBlock, newcfg.CepheusBlock)
 	}
 	return nil
 }
@@ -1046,6 +1062,7 @@ type Rules struct {
 	IsByzantium, IsConstantinople, IsPetersburg, IsIstanbul bool
 	IsBerlin, IsLondon                                      bool
 	IsMerge, IsShanghai, IsCancun, IsPrague                 bool
+	IsCepheus                                               bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -1070,5 +1087,6 @@ func (c *ChainConfig) Rules(num *big.Int, isMerge bool, timestamp uint64) Rules 
 		IsShanghai:       c.IsShanghai(timestamp),
 		IsCancun:         c.IsCancun(timestamp),
 		IsPrague:         c.IsPrague(timestamp),
+		IsCepheus:        c.IsCepheus(num),
 	}
 }
