@@ -247,7 +247,7 @@ var (
 		LondonBlock:                   nil,
 		ArrowGlacierBlock:             nil,
 		CassiopeiaBlock:               big.NewInt(12571200),
-		CepheusBlock:                  nil,
+		CepheusBlock:                  big.NewInt(22982391),
 		TerminalTotalDifficulty:       nil,
 		TerminalTotalDifficultyPassed: false,
 		Clique: &CliqueConfig{
