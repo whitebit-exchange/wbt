@@ -98,6 +98,9 @@ var (
 	// to contain a 65 byte secp256k1 signature.
 	errMissingSignature = errors.New("extra-data 65 byte signature suffix missing")
 
+	// errInvalidSignature is returned if the signature is malformed or non-canonical.
+	errInvalidSignature = errors.New("invalid signature")
+
 	// errExtraSigners is returned if non-checkpoint block contain signer data in
 	// their extra-data fields.
 	errExtraSigners = errors.New("non-checkpoint block contains extra signer list")
@@ -154,6 +157,14 @@ func ecrecover(header *types.Header, sigcache *sigLRU) (common.Address, error) {
 		return common.Address{}, errMissingSignature
 	}
 	signature := header.Extra[len(header.Extra)-extraSeal:]
+	r := new(big.Int).SetBytes(signature[:32])
+	s := new(big.Int).SetBytes(signature[32:64])
+	v := signature[64]
+
+	// Clique uses Homestead low-s rules to reject malleable seals.
+	if !crypto.ValidateSignatureValues(v, r, s, true) {
+		return common.Address{}, errInvalidSignature
+	}
 
 	// Recover the public key and the Ethereum address
 	pubkey, err := crypto.Ecrecover(SealHash(header).Bytes(), signature)
@@ -303,6 +314,9 @@ func (c *Clique) verifyHeader(chain consensus.ChainHeaderReader, header *types.H
 	}
 	if chain.Config().IsCancun(header.Time) {
 		return fmt.Errorf("clique does not support cancun fork")
+	}
+	if header.WithdrawalsHash != nil {
+		return fmt.Errorf("unexpected withdrawals root in clique header")
 	}
 	// All basic checks passed, verify cascading fields
 	return c.verifyCascadingFields(chain, header, parents)

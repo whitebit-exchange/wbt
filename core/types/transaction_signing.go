@@ -258,7 +258,7 @@ func (s eip2930Signer) Sender(tx *Transaction) (common.Address, error) {
 	switch tx.Type() {
 	case LegacyTxType:
 		if !tx.Protected() {
-			return HomesteadSigner{}.Sender(tx)
+			return common.Address{}, ErrTxTypeNotSupported
 		}
 		V = new(big.Int).Sub(V, s.chainIdMul)
 		V.Sub(V, big8)
@@ -361,7 +361,7 @@ func (s EIP155Signer) Sender(tx *Transaction) (common.Address, error) {
 		return common.Address{}, ErrTxTypeNotSupported
 	}
 	if !tx.Protected() {
-		return HomesteadSigner{}.Sender(tx)
+		return common.Address{}, ErrTxTypeNotSupported
 	}
 	if tx.ChainId().Cmp(s.chainId) != 0 {
 		return common.Address{}, fmt.Errorf("%w: have %d want %d", ErrInvalidChainId, tx.ChainId(), s.chainId)
