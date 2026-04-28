@@ -287,6 +287,14 @@ func DecodePubkey(curve elliptic.Curve, e Pubkey) (*ecdsa.PublicKey, error) {
 	half := len(e) / 2
 	p.X.SetBytes(e[:half])
 	p.Y.SetBytes(e[half:])
+
+	// Must use canonical encoding (0 <= X,Y < P)
+	if params := curve.Params(); params != nil && params.P != nil {
+		if p.X.Cmp(params.P) >= 0 || p.Y.Cmp(params.P) >= 0 {
+			return nil, ErrBadPoint
+		}
+	}
+
 	if !p.Curve.IsOnCurve(p.X, p.Y) {
 		return nil, ErrBadPoint
 	}
