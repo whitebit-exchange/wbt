@@ -248,6 +248,7 @@ var (
 		ArrowGlacierBlock:             nil,
 		CassiopeiaBlock:               big.NewInt(12571200),
 		CepheusBlock:                  big.NewInt(22982391),
+		SunsetBlock:                   big.NewInt(50851438),
 		TerminalTotalDifficulty:       nil,
 		TerminalTotalDifficultyPassed: false,
 		Clique: &CliqueConfig{
@@ -507,6 +508,7 @@ type ChainConfig struct {
 	MergeNetsplitBlock  *big.Int `json:"mergeNetsplitBlock,omitempty"`  // Virtual fork after The Merge to use as a network splitter
 	CassiopeiaBlock     *big.Int `json:"cassiopeiaBlock,omitempty"`
 	CepheusBlock        *big.Int `json:"cepheusBlock,omitempty"` // Cepheus switch block (nil = no fork, 0 = already activated)
+	SunsetBlock         *big.Int `json:"sunsetBlock,omitempty"`  // Sunset switch block (nil = no fork, 0 = already activated)
 
 	// Fork scheduling was switched from blocks to timestamps here
 
@@ -624,6 +626,9 @@ func (c *ChainConfig) Description() string {
 	}
 	if c.CepheusBlock != nil {
 		banner += fmt.Sprintf(" - Cepheus:                     #%-8v\n", c.CepheusBlock)
+	}
+	if c.SunsetBlock != nil {
+		banner += fmt.Sprintf(" - Sunset:                      #%-8v\n", c.SunsetBlock)
 	}
 	banner += "\n"
 
@@ -916,6 +921,9 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, headNumber *big.Int, 
 	}
 	if isForkBlockIncompatible(c.CepheusBlock, newcfg.CepheusBlock, headNumber) {
 		return newBlockCompatError("Cepheus fork block", c.CepheusBlock, newcfg.CepheusBlock)
+	}
+	if isForkBlockIncompatible(c.SunsetBlock, newcfg.SunsetBlock, headNumber) {
+		return newBlockCompatError("Sunset fork block", c.SunsetBlock, newcfg.SunsetBlock)
 	}
 	return nil
 }

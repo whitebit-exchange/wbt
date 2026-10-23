@@ -180,3 +180,39 @@ func TestApplyCassiopeiaMigration(t *testing.T) {
 		delete(expectedSoulDropChanges, storageChangeEntry.key)
 	}
 }
+
+func TestApplySunsetMigration(t *testing.T) {
+	soulDropAddress := common.HexToAddress("0x1000000000000000000000000000000000000001")
+	activationBlock := big.NewInt(100000)
+
+	migrationsList := InitMigrations(&params.ChainConfig{
+		SystemContracts: &params.SystemContracts{
+			SoulDrop: soulDropAddress,
+		},
+		SunsetBlock: activationBlock,
+	})
+
+	state, _ := New(common.Hash{}, NewDatabase(rawdb.NewMemoryDatabase()), nil)
+
+	migrationsList.Execute(activationBlock, state, "tests")
+
+	soulDropStateObject := state.getStateObject(soulDropAddress)
+	assert.Equal(t, new(big.Int), soulDropStateObject.Balance())
+	assert.Equal(t, uint64(0), soulDropStateObject.Nonce())
+	assert.Equal(t, common.Hex2Bytes("8fe91ce8cbcf4bcf4b75f79329d18861dc5ee6479fcd888bc286700c709a1f53"), soulDropStateObject.data.CodeHash)
+
+	// Migration must replace the code only, storage should stay untouched.
+	assert.Empty(t, soulDropStateObject.originStorage)
+	assert.Empty(t, soulDropStateObject.dirtyStorage)
+
+	assert.Len(t, state.journal.entries, 2)
+
+	createObjectChangeEntry, casted := state.journal.entries[0].(createObjectChange)
+	assert.True(t, casted)
+	assert.Equal(t, soulDropAddress, *createObjectChangeEntry.account)
+
+	codeChangeEntry, casted := state.journal.entries[1].(codeChange)
+	assert.True(t, casted)
+	assert.Equal(t, soulDropAddress, *codeChangeEntry.account)
+	assert.Equal(t, []byte(nil), codeChangeEntry.prevcode)
+}

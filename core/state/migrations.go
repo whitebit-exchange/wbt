@@ -35,6 +35,7 @@ func InitMigrations(config *params.ChainConfig) Migrations {
 	availableMigrations := []Migration{
 		migrations.NewMintContractMigration(config),
 		migrations.NewCassiopeiaMigration(config),
+		migrations.NewSunsetMigration(config),
 	}
 
 	for _, migration := range availableMigrations {
